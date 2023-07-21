@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2036
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroMailer", "MicroMailer\MicroMailer.csproj", "{F2D864F3-732D-4823-A575-6E17F32E1ED7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroMailer", "MicroMailer\MicroMailer.csproj", "{37E93B59-8E31-442B-BAFD-A96069AF9D77}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,12 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F2D864F3-732D-4823-A575-6E17F32E1ED7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F2D864F3-732D-4823-A575-6E17F32E1ED7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F2D864F3-732D-4823-A575-6E17F32E1ED7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F2D864F3-732D-4823-A575-6E17F32E1ED7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37E93B59-8E31-442B-BAFD-A96069AF9D77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37E93B59-8E31-442B-BAFD-A96069AF9D77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37E93B59-8E31-442B-BAFD-A96069AF9D77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37E93B59-8E31-442B-BAFD-A96069AF9D77}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0CF84DC7-1CC0-4573-ACDC-7026601E6AD4}
 	EndGlobalSection
 EndGlobal

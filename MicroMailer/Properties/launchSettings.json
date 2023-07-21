@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MicroMailer": {
+      "commandName": "Project",
+      "commandLineArgs": "1 \"Tree1\" \"Node1\" \"Test Fehler\" \"Dies ist eine Test-Message!\" \"smtp.1und1.de:25:s=1/2at^2Newton\" \"Vishnu@reallyhuman.net\" \"e.nagel@neteti.de;microsoft@neteti.de\" \"Testdaten\\070605_DotNet_Gewuenschte_Abhaengigkeit.pdf\" \"Testdaten\\Parameterübergabe im Vishnu-Tree.pptx\""
+    }
+  }
+}
