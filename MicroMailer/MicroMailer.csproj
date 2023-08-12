@@ -13,8 +13,8 @@
     <Authors>Erik Nagel</Authors>
     <Company>NetEti</Company>
     <Copyright>Copyright © $(Authors) 2012-2023</Copyright>
-    <AssemblyVersion>7.0.1.1</AssemblyVersion>
-    <FileVersion>7.0.1.1</FileVersion>
+    <AssemblyVersion>7.0.1.2</AssemblyVersion>
+    <FileVersion>7.0.1.2</FileVersion>
     <RootNamespace>NetEti.Communication</RootNamespace>
     <PackageTags>NetEti Vishnu Worker Mail Message</PackageTags>
   </PropertyGroup>
@@ -23,6 +23,14 @@
     <AssemblyRoot>$(ProjectDir)../../../ReadyBin/Assemblies</AssemblyRoot>
   </PropertyGroup>
   <Import Project="$(ProjectDir)../../AddOn/proj/*" Condition="exists('$(ProjectDir)../../AddOn/proj')" />
+  <ItemGroup>
+    <Compile Remove="Program - Kopie.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="NetEti.CommandLineAccess">
+      <HintPath>..\..\..\ReadyBin\Assemblies\NetEti.CommandLineAccess.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 
   <ItemGroup>
     <None Update="Testdaten\070605_DotNet_Gewuenschte_Abhaengigkeit.pdf">

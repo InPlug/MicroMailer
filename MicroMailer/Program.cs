@@ -1,7 +1,8 @@
+using NetEti.ApplicationEnvironment;
 using System.Net;
 using System.Net.Mail;
 using System.Security;
-using System.Text.RegularExpressions;
+using System.Text;
 
 namespace NetEti.Communication
 {
@@ -16,6 +17,8 @@ namespace NetEti.Communication
     ///
     /// 21.06.2015 Erik Nagel, NetEti: erstellt
     /// 21.04.2023 Erik Nagel: für .Net 7.0 komplett überarbeitet.
+    /// 10.08.2023 Erik Nagel: Auf benannte Parameter umgestellt.
+    ///                        Dadurch wird eine erweiterte Parameterersetzung ermöglicht.
     /// </remarks>
     public static class MicroMailer
     {
@@ -31,22 +34,22 @@ namespace NetEti.Communication
         [STAThread]
         public static void Main(string[] args)
         {
-            string paraMessage = EvaluateParametersOrDie(args, out string aufrufInfo, out int aufrufCounter, out string subject, out string messageText,
-                out string host, out int port, out SecureString securePW, out string sender, out string recipients, out List<string> attachments);
+            string paraMessage = EvaluateParametersOrDie(out string subject, out string messageText,
+                out string host, out int? port, out SecureString? securePW, out string sender,
+                out string recipients, out List<string> attachments);
 
             try
             {
-                MicroMailer.quickSmtp(subject, messageText, host, port, securePW, sender, recipients, attachments);
+                MicroMailer.QuickSmtp(subject, messageText, host, port, securePW, sender, recipients, attachments);
             }
             catch (Exception ex)
             {
-                SyntaxAndDie(ex.Message + Environment.NewLine + paraMessage);
+                Die<string>(ex.Message, paraMessage);
             }
-
         }
 
-        static void quickSmtp(string subject, string messageText, string host, int port, SecureString password,
-            string sender, string recipients, List<string> attachments)
+        static void QuickSmtp(string subject, string messageText, string host, int? port, SecureString? password,
+            string sender, string recipients, List<string>? attachments)
         {
             /*
              * Funktioniert so nicht, da ein Dialog aufpoppt; theoretisch denkbar: VB-Script mit Sleep und SendKey oder AutoIt-Steuerung.
@@ -58,7 +61,7 @@ namespace NetEti.Communication
              * return;
             */
 
-            using (SmtpClient smtpClient = port > 0 ? new SmtpClient(host, port) : new SmtpClient(host))
+            using (SmtpClient smtpClient = port != null ? new SmtpClient(host, (int)port) : new SmtpClient(host))
             {
                 smtpClient.Credentials = new NetworkCredential(sender, password);
                 smtpClient.EnableSsl = true;
@@ -70,138 +73,172 @@ namespace NetEti.Communication
                 }
                 mailMessage.Subject = subject;
                 mailMessage.Body = messageText;
-                foreach (string item in attachments)
+                if (attachments != null)
                 {
-                    mailMessage.Attachments.Add(new Attachment(item));
+                    foreach (string item in attachments)
+                    {
+                        mailMessage.Attachments.Add(new Attachment(item));
+                    }
                 }
+                /*
+                int l = password?.Length ?? 0;
+                string toString = String.Join(';', mailMessage.To);
+                MessageBox.Show(String.Format($"host: {host}, pwLength: {l}, port: {port}")
+                    + Environment.NewLine + String.Format($"sender: {sender}")
+                    + Environment.NewLine + String.Format($"to: {toString}")
+                    + Environment.NewLine + String.Format($"subject: {mailMessage.Subject}")
+                    + Environment.NewLine + String.Format($"body: {mailMessage.Body}"),
+                    "Debug-Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                */
+                
                 smtpClient.Send(mailMessage);
                 mailMessage.Dispose();
             }
         }
 
-        private static string EvaluateParametersOrDie(string[] args, out string aufrufInfo, out int aufrufCounter, out string subject,
-            out string messageText, out string host, out int port, out SecureString securePW, out string sender, out string recipients,
+        private static string EvaluateParametersOrDie(out string caption, out string message,
+            out string host, out int? port, out SecureString? securePW,
+            out string sender, out string recipients,
             out List<string> attachments)
         {
-            // Übergabeparameter
-            aufrufInfo = "";
-            aufrufCounter = 0;
-            subject = "";
-            messageText = "";
-            host = "";
-            port = 0;
-            securePW = new();
-            sender = "";
-            recipients = "";
             attachments = new();
+            CommandLineAccess commandLineAccess = new();
 
-            Exception? paraException = null;
-            string paraMessage;
+            string? tmpStr = commandLineAccess.GetStringValue("EscalationCounter", "0");
+            bool isResetting = Int32.TryParse(tmpStr, out int escalationCounter) && escalationCounter < 0;
+            caption = commandLineAccess.GetStringValue("Caption", "Information") ?? "Information";
 
+            string msg = commandLineAccess.GetStringValue("Message", null)
+                ?? Die<string>("Es muss ein Meldungstext mitgegeben werden.", commandLineAccess.CommandLine);
+
+            tmpStr = commandLineAccess.GetStringValue("MessageNewLine", null);
+            string[] messageLines;
+            if (!String.IsNullOrEmpty(tmpStr))
+            {
+                messageLines = msg.Split(tmpStr);
+            }
+            else
+            {
+                messageLines = new string[1] { msg };
+            }
             string delim = "";
-            try
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < messageLines.Count(); i++)
             {
-                _ = int.TryParse(args[0].Trim(), out aufrufCounter);
-                args = args.Skip(3).ToArray();
-
-                if (args.Length < 5) { SyntaxAndDie(null); }
-
-                subject = args[0].TrimStart('"').TrimEnd('"');
-                if (aufrufCounter < 0)
-                {
-                    aufrufInfo = "Das Problem ist behoben. Die ursprüngliche Meldung war:";
-                    subject = String.Format("Das Problem ist behoben ({0}).", subject);
-                    delim = Environment.NewLine;
-                }
-                messageText = aufrufInfo + delim + args[1].TrimStart('"').TrimEnd('"').Replace("#", Environment.NewLine);
-
-                ParseHostPortPW(args[2].TrimStart('"').TrimEnd('"'), ref host, ref port, ref securePW);
-
-                sender = args[3].TrimStart('"').TrimEnd('"');
-                recipients = args[4].TrimStart('"').TrimEnd('"'); // Komma-separiert
-
-                // mal schnell nen kleinen Aray-Slice ohne Extension-Methode:
-                attachments
-                  = new List<string>(Enumerable.Range(5, args.Length - 1).Where(n => n < args.Length).Select((n) => args[n].TrimStart('"').TrimEnd('"')));
-
+                sb.Append(delim + messageLines[i]);
+                delim = Environment.NewLine;
             }
-            catch (Exception ex)
+            message = sb.ToString();
+            if (isResetting)
             {
-                paraException = ex;
+                message = "Das Problem ist behoben. Die ursprüngliche Meldung war:"
+                        + Environment.NewLine
+                + message;
+                caption = "Entwarnung";
             }
-            finally
+
+            string mailHostPort = commandLineAccess.GetStringValue("MailHostPort", null)
+                ?? Die<string>("Es muss Mail-Host mitgegeben werden (optional mit Port nach Doppelpunkt).",
+                commandLineAccess.CommandLine);
+
+            string? mailPassword = commandLineAccess.GetStringValue("MailPassword", null);
+            ParseHostPortPW(mailHostPort, mailPassword, out host, out port, out securePW);
+
+            sender = commandLineAccess.GetStringValue("MailSender", null)?.TrimStart('"').TrimEnd('"')
+                ?? Die<string>("Es muss ein Absender mitgegeben werden.", commandLineAccess.CommandLine);
+
+            recipients = commandLineAccess.GetStringValue("MailRecipients", null)?.TrimStart('"').TrimEnd('"')
+                ?? Die<string>("Es müssen ein oder mehrere Empfänger mitgegeben werden (Trennzeichen ist Semikolon).",
+                commandLineAccess.CommandLine);
+
+            string? attachmentsString
+                = commandLineAccess.GetStringValue("MailAttachments", null)?.TrimStart('"').TrimEnd('"');
+            if (!String.IsNullOrEmpty(attachmentsString))
             {
-                string attachmentsString = "";
-                for (int i = 0; i < attachments.Count; i++)
-                {
-                    attachmentsString += attachments[i].ToString() + Environment.NewLine;
-                }
-                if (!String.IsNullOrEmpty(attachmentsString))
-                {
-                    attachmentsString = Regex.Replace(attachmentsString, ":.*", "");
-                    attachmentsString = "\nAttachments: " + attachmentsString;
-                }
-                string portString = port == 0 ? "" : "\nPort: " + Regex.Replace(port.ToString() ?? "", ":.*?[ \n]", "\n");
-                paraMessage = String.Format("{0}"
-                  + "\nSubject: {1}"
-                  + "\nMessage: {2}"
-                  + "\nHost: {3}"
-                  + portString
-                  + "\nSender: {4}"
-                  + "\nRecipients: {5}"
+                attachments = new List<string>(attachmentsString.Split(';'));
+            }
+
+            string paraMessage = String.Format(
+                    "\nCaption: {0}"
+                  + "\nMessage: {1}"
+                  + "\nHostPort: {2}"
+                  + "\nSender: {3}"
+                  + "\nRecipients: {4}\n"
                   + attachmentsString
-                  , Regex.Replace(paraException?.Message ?? "", ":.*?[ \n]", "\n")
-                  , Regex.Replace(subject, ":.*", "")
-                  , Regex.Replace(messageText, ":.*", "")
-                  , Regex.Replace(host, ":.*", "")
-                  , Regex.Replace(sender, ":.*", "")
-                  , Regex.Replace(recipients, ":.*", ""));
-            }
-            if (paraException != null)
-            {
-                SyntaxAndDie(paraMessage);
-            }
+                  , caption
+                  , message
+                  , mailHostPort
+                  , sender
+                  , recipients
+            );
             return paraMessage;
         }
 
-        private static void ParseHostPortPW(string hostPortPW, ref string host, ref int port, ref SecureString securePW)
+        private static void ParseHostPortPW(string mailHostPort, string? mailPassword, out string host,
+            out int? port, out SecureString? securePW)
         {
-            try
+            string[] mailHostPortArray = mailHostPort.TrimStart('"').TrimEnd('"').Split(':');
+            host = mailHostPortArray[0];
+            port = null;
+            if (mailHostPortArray.Length > 1)
             {
-                Array.ForEach(hostPortPW.Split(':')[2].ToArray(), securePW.AppendChar);
-            }
-            catch { }
-            securePW.MakeReadOnly();
-
-            port = 0;
-            try
-            {
-                if (Int32.TryParse(hostPortPW.Split(':')[1], out int paraPort))
+                if (Int32.TryParse(mailHostPortArray[1], out int paraPort))
                 {
                     port = paraPort;
-                };
+                }
             }
-            catch { }
-
-            host = hostPortPW.Split(':')[0];
+            securePW = null;
+            if (!String.IsNullOrEmpty(mailPassword))
+            {
+                securePW = new();
+                Array.ForEach(mailPassword.ToArray(), securePW.AppendChar);
+                securePW.MakeReadOnly();
+            }
         }
 
-        private static void SyntaxAndDie(string? message)
+        private static T Die<T>(string? message, string? commandLine = null)
         {
-            string msg = message?.Trim() ?? "";
-            if (!String.IsNullOrEmpty(msg))
+            string usage = "Syntax:"
+                + Environment.NewLine
+                + "\t-Message=<Nachricht>"
+                + Environment.NewLine
+                + "\t-MailHostPort=<Host[:Port]>"
+                + Environment.NewLine
+                + "\t-MailSender=<Absender>"
+                + Environment.NewLine
+                + "\t-MailRecipients=<Empfänger[;Empfänger...]>"
+                + Environment.NewLine
+                + "\t[-MailPassword=<Passwort>]"
+                + Environment.NewLine
+                + "\t[-Caption=<Überschrift>]"
+                + Environment.NewLine
+                + "\t[-MessageNewLine=<NewLine-Kennung>]"
+                + Environment.NewLine
+                + "\t[-MailArrachments=<Mail-Anhang[;Mail-Anhang...]]>"
+                + Environment.NewLine
+                + "\t[-EscalationCounter={-n;+n} (negativ: Ursache behoben)]"
+                + Environment.NewLine
+                + "Beispiel:"
+                + Environment.NewLine
+                + "\t-Message=\"Server-1:#Zugriffsproblem#Connection-Error...\""
+                + Environment.NewLine
+                + "\t-Caption=\"SQL-Exception\""
+                + Environment.NewLine
+                + "\t-MessageNewLine=\"#\""
+                + Environment.NewLine
+                + "\t-MailHostPort=\"MyHost:587\""
+                + Environment.NewLine
+                + "\t-MailSender=\"me@mymail\""
+                + Environment.NewLine
+                + "\t-MailRecipients=\"a@amail;b@bmail\""
+                + Environment.NewLine
+                + "\t-MailAttachments=\"a-file_path;another-file-path\"";
+            if (commandLine != null)
             {
-                msg += Environment.NewLine;
+                usage = "Kommandozeile: " + commandLine + Environment.NewLine + usage;
             }
-            MessageBox.Show(msg
-              + "Aufruf:\n"
-              + "MicroMailer VishnuCounter Vishnu-TreeParameters Vishnu-NodeId Betreff Meldung Mailserver:[Port]:[Passwort]"
-              + " \"Empfäger mit Semikolon getrennt\" [Anhang [...]]\n"
-              + "Beispiel:\n"
-              + "\"1\" \"Tree\" \"Node\" \"Test Fehler\" \"Dies ist eine Test-Message!\" \"smtp.<meinServer>.de::<Passwort>\""
-              + " \"Vishnu@reallyhuman.net\" \"neteti@neteti.de;musterfrau@gmail.com\" \"Testdaten\\070605_DotNet_Gewuenschte_Abhaengigkeit.pdf\""
-              + " \"Testdaten\\Parameterübergabe im Vishnu-Tree.pptx\"");
-            Environment.Exit(255);
+            MessageBox.Show(message + Environment.NewLine + usage, "Mail Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            throw new ArgumentException(message + Environment.NewLine + usage);
         }
     }
 }
