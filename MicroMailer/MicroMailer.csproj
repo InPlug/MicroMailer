@@ -23,14 +23,21 @@
     <AssemblyRoot>$(ProjectDir)../../../ReadyBin/Assemblies</AssemblyRoot>
   </PropertyGroup>
   <Import Project="$(ProjectDir)../../AddOn/proj/*" Condition="exists('$(ProjectDir)../../AddOn/proj')" />
-  <ItemGroup>
-    <Compile Remove="Program - Kopie.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="NetEti.CommandLineAccess">
-      <HintPath>..\..\..\ReadyBin\Assemblies\NetEti.CommandLineAccess.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+
+	<Choose>
+  	<When Condition="!('$(TF_BUILD)' == 'true' Or '$(GITHUB_ACTIONS)' == 'true' Or '$(NETETI_CIB)' == 'true')">
+		  <ItemGroup>
+		    <Reference Include="NetEti.CommandLineAccess">
+		      <HintPath>$(AssemblyRoot)/NetEti.CommandLineAccess.dll</HintPath>
+		    </Reference>
+		  </ItemGroup>
+  	</When>
+    <Otherwise>
+		  <ItemGroup>
+		    <PackageReference Include="NetEti.CommandLineAccess" Version="1.0.0" />
+		  </ItemGroup>
+    </Otherwise>
+	</Choose>
 
   <ItemGroup>
     <None Update="Testdaten\070605_DotNet_Gewuenschte_Abhaengigkeit.pdf">
