@@ -27,9 +27,9 @@ namespace NetEti.Communication
         /// </summary>
         /// <param name="args">
         /// "Vishnu-Counter" "Vishnu-TreeParameters" "Vishnu-NodeId"
-        /// "Betreff" "Meldungstext" "Mailserver:[Port]:[Passwort]" "Absender" "Empfäger mit Semikolon getrennt" ["Anhang" ...].
+        /// "Betreff" "Meldungstext" "Mailserver:[Port]:[Passwort]" "Absender" "Empfänger mit Semikolon getrennt" ["Anhang" ...].
         /// Wichtig: die ersten drei Parameter werden im Vishnu-Betrieb von Vishnu generiert und werden in einer JobDescription.xml nicht aufgeführt;
-        /// für den Test des MicroMailers müssn sie in den Debug-Parametern allerdings übergeben werden.
+        /// für den Test des MicroMailers müssen sie in den Debug-Parametern allerdings übergeben werden.
         /// </param>
         [STAThread]
         public static void Main(string[] args)
