@@ -131,10 +131,12 @@ namespace NetEti.Communication
             message = sb.ToString();
             if (isResetting)
             {
-                message = "Das Problem ist behoben. Die ursprüngliche Meldung war:"
+                string resolvedPrefix = commandLineAccess.GetStringValue(
+                    "ResolvedPrefix", "Das Problem ist behoben. Die ursprüngliche Meldung war:") ?? "";
+                message = resolvedPrefix
                         + Environment.NewLine
                 + message;
-                caption = "Entwarnung";
+                caption = "(" + caption + ")";
             }
 
             string mailHostPort = commandLineAccess.GetStringValue("MailHostPort", null)
@@ -218,11 +220,15 @@ namespace NetEti.Communication
                 + Environment.NewLine
                 + "\t[-EscalationCounter={-n;+n} (negativ: Ursache behoben)]"
                 + Environment.NewLine
+                + "\t[-ResolvedPrefix=<Vorangestellter Kurztext bei negativem EscalationCounter>]"
+                + Environment.NewLine
                 + "Beispiel:"
                 + Environment.NewLine
                 + "\t-Message=\"Server-1:#Zugriffsproblem#Connection-Error...\""
                 + Environment.NewLine
                 + "\t-Caption=\"SQL-Exception\""
+                + Environment.NewLine
+                + "\t-ResolvedPrefix=\"No longer valid:\""
                 + Environment.NewLine
                 + "\t-MessageNewLine=\"#\""
                 + Environment.NewLine

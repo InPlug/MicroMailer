@@ -2,7 +2,7 @@
   "profiles": {
     "MicroMailer": {
       "commandName": "Project",
-      "commandLineArgs": "-EscalationCounter=1 -Vishnu.TreeInfo=\"Tree1\" -Vishnu.NodeInfo=\"Node1\" -Caption=\"Test Fehler\" -Message=\"Dies ist eine Test-Message!\" -MailHostPort=smtp.1und1.de:25 -MailPassword=\"s=1/2at^2Newton\" -MailSender=\"Vishnu@reallyhuman.net\" -MailRecipients=\"e.nagel@neteti.de;microsoft@neteti.de\" -MailAttachments=\"Testdaten\\070605_DotNet_Gewuenschte_Abhaengigkeit.pdf;Testdaten\\Parameterübergabe im Vishnu-Tree.pptx\""
+      "commandLineArgs": "-EscalationCounter=-1 -Vishnu.TreeInfo=\"Tree1\" -Vishnu.NodeInfo=\"Node1\" -Caption=\"Test Fehler\" -Message=\"Dies ist eine Test-Message!\" -ResolvedPrefix=\"jelöst:\" -MailHostPort=smtp.1und1.de:25 -MailPassword=\"s=1/2at^2Newton\" -MailSender=\"Vishnu@reallyhuman.net\" -MailRecipients=\"e.nagel@neteti.de;microsoft@neteti.de\" -MailAttachments=\"Testdaten\\070605_DotNet_Gewuenschte_Abhaengigkeit.pdf;Testdaten\\Parameterübergabe im Vishnu-Tree.pptx\""
     }
   }
 }
