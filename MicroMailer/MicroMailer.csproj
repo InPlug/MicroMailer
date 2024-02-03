@@ -12,7 +12,7 @@
     <Description>$(AssemblyName) - Vishnu-Worker: versendet E-Mails</Description>
     <Authors>Erik Nagel</Authors>
     <Company>NetEti</Company>
-    <Copyright>Copyright © $(Authors) 2012-2023</Copyright>
+    <Copyright>Copyright © $(Authors) 2012-$([System.DateTime]::Now.Year)</Copyright>
     <AssemblyVersion>8.0.1.0</AssemblyVersion>
     <FileVersion>8.0.1.0</FileVersion>
     <RootNamespace>NetEti.Communication</RootNamespace>
