@@ -26,6 +26,8 @@ namespace NetEti.Communication
         /// Haupt-Einstiegspunkt für die Anwendung.
         /// </summary>
         /// <param name="args">
+        /// Hinweis: die "args" werden hier nicht direkt eingelesen, sondern in der Routine
+        ///              "EvaluateParametersOrDie" über "CommandLineAccess" ausgewertet.
         /// "Vishnu-Counter" "Vishnu-TreeParameters" "Vishnu-NodeId"
         /// "Betreff" "Meldungstext" "Mailserver:[Port]:[Passwort]" "Absender" "Empfänger mit Semikolon getrennt" ["Anhang" ...].
         /// Wichtig: die ersten drei Parameter werden im Vishnu-Betrieb von Vishnu generiert und werden in einer JobDescription.xml nicht aufgeführt;
